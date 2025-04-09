@@ -1,103 +1,223 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import Tabs from '@/components/Tabs';
+import PlayerForm from '@/components/PlayerForm';
+import PlayerList from '@/components/PlayerList';
+import MatchForm from '@/components/MatchForm';
+import MatchList from '@/components/MatchList';
+import BadmintonCourt from '@/components/BadmintonCourt';
+import AnalysisPanel from '@/components/AnalysisPanel';
+import MatchManagement from '@/components/MatchManagement';
+import { Match } from '@/types/match';
+import { Shot } from '@/types/shot';
+import { db } from '@/utils/db';
+import BackupPanel from '@/components/BackupPanel';
+
+type TabType = 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup';
+
+interface Player {
+  id: string;
+  name: string;
+  affiliation: string;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [activeTab, setActiveTab] = useState<TabType>('players');
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [shots, setShots] = useState<Shot[]>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  // IndexedDBからデータを読み込む
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [loadedPlayers, loadedMatches, loadedShots] = await Promise.all([
+          db.getPlayers(),
+          db.getMatches(),
+          db.getShots(),
+        ]);
+        setPlayers(loadedPlayers);
+        setMatches(loadedMatches);
+        setShots(loadedShots);
+      } catch (error) {
+        console.error('データの読み込みに失敗しました:', error);
+      }
+    };
+    loadData();
+  }, []);
+
+  // データが変更されたときにIndexedDBに保存
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await Promise.all([
+          db.savePlayers(players),
+          db.saveMatches(matches),
+          db.saveShots(shots),
+        ]);
+      } catch (error) {
+        console.error('データの保存に失敗しました:', error);
+      }
+    };
+    saveData();
+  }, [players, matches, shots]);
+
+  const handlePlayerAdded = (player: Player) => {
+    setPlayers((prev) => [...prev, player]);
+  };
+
+  const handlePlayerDeleted = (id: string) => {
+    setPlayers(players.filter((player) => player.id !== id));
+    // 関連する試合とショットも削除
+    const updatedMatches = matches.filter(
+      (match) =>
+        match.players.player1 !== id &&
+        match.players.player2 !== id &&
+        match.players.opponent1 !== id &&
+        match.players.opponent2 !== id
+    );
+    setMatches(updatedMatches);
+    setShots(shots.filter((shot) => 
+      shot.hitPlayer !== id && shot.receivePlayer !== id
+    ));
+  };
+
+  const handleMatchAdded = (match: Match) => {
+    setMatches((prev) => [...prev, match]);
+  };
+
+  const handleMatchDeleted = (id: string) => {
+    setMatches((prev) => prev.filter((match) => match.id !== id));
+    // 関連するショットも削除
+    setShots(shots.filter((shot) => shot.matchId !== id));
+  };
+
+  const handleMatchSelected = (match: Match) => {
+    setSelectedMatch(match);
+    setActiveTab('shots');
+  };
+
+  const handleShotAdded = (shotData: Omit<Shot, 'id' | 'timestamp'>) => {
+    const newShot: Shot = {
+      ...shotData,
+      id: Date.now().toString(),
+      timestamp: Date.now(),
+    };
+    setShots([...shots, newShot]);
+  };
+
+  const handleLastShotDeleted = () => {
+    if (shots.length > 0) {
+      const newShots = [...shots];
+      newShots.pop(); // 最後の配球を削除
+      setShots(newShots);
+    }
+  };
+
+  const handleEndMatch = () => {
+    // 現在のデータを保存
+    localStorage.setItem('players', JSON.stringify(players));
+    localStorage.setItem('matches', JSON.stringify(matches));
+    localStorage.setItem('shots', JSON.stringify(shots));
+    
+    // アラートを表示して終了
+    alert('データを保存しました。アプリケーションを終了します。');
+    window.close();
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'players':
+        return (
+          <div className="space-y-4">
+            <PlayerForm onPlayerAdded={handlePlayerAdded} />
+            <PlayerList
+              players={players}
+              shots={shots}
+              onPlayerDeleted={handlePlayerDeleted}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+        );
+      case 'matches':
+        return (
+          <div className="space-y-4">
+            <MatchForm players={players} onMatchAdded={handleMatchAdded} />
+            <MatchList
+              matches={matches}
+              players={players}
+              onMatchDeleted={handleMatchDeleted}
+              onMatchSelected={handleMatchSelected}
+            />
+          </div>
+        );
+      case 'shots':
+        return selectedMatch ? (
+          <div>
+            <div className="mb-4 p-4 bg-white rounded-lg shadow">
+              <h2 className="text-lg font-medium text-gray-900">試合情報</h2>
+              <p className="text-sm text-gray-500">
+                {new Date(selectedMatch.date).toLocaleDateString('ja-JP')} -{' '}
+                {selectedMatch.type === 'singles' ? 'シングルス' : 'ダブルス'}
+              </p>
+            </div>
+            <BadmintonCourt
+              match={selectedMatch}
+              players={players}
+              onShotAdded={handleShotAdded}
+              onLastShotDeleted={handleLastShotDeleted}
+              shots={shots}
+            />
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">
+            配球を登録する試合を選択してください
+          </div>
+        );
+      case 'analysis':
+        return (
+          <AnalysisPanel
+            players={players}
+            matches={matches}
+            shots={shots}
+          />
+        );
+      case 'management':
+        return (
+          <MatchManagement
+            matches={matches}
+            players={players}
+            shots={shots}
+            onMatchDeleted={handleMatchDeleted}
+          />
+        );
+      case 'backup':
+        return (
+          <BackupPanel />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">バドミントン分析システム</h1>
+            <button
+              onClick={handleEndMatch}
+              className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              終了
+            </button>
+          </div>
+          <Tabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className="mt-8">{renderTabContent()}</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
