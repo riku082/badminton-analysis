@@ -1,145 +1,115 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Player } from '@/types/player';
+import React from 'react';
 import { Shot } from '@/types/shot';
-import { Match } from '@/types/match';
+import { Player } from '@/types/player';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface AnalysisPanelProps {
-  players: Player[];
-  matches: Match[];
   shots: Shot[];
+  players: Player[];
 }
 
-const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ players, matches, shots }) => {
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-
-  // 選手ごとの統計を計算
-  const calculatePlayerStats = (playerId: string) => {
-    const playerShots = shots.filter(shot => shot.hitPlayer === playerId);
-    const rearShots = playerShots.filter(shot => ['LR', 'CR', 'RR'].includes(shot.hitArea));
-    const totalRearShots = rearShots.length;
-
-    // クロス率の計算
-    const crossShots = rearShots.filter(shot => {
-      const hitArea = shot.hitArea;
-      const receiveArea = shot.receiveArea;
-      return (
-        (hitArea === 'LR' && ['RF', 'RM'].includes(receiveArea)) ||
-        (hitArea === 'RR' && ['LF', 'LM'].includes(receiveArea))
-      );
-    });
-
-    // ミス率と得点率の計算
-    const winners = rearShots.filter(shot => shot.result === 'winner').length;
-    const errors = rearShots.filter(shot => shot.result === 'error').length;
+const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
+  const calculatePlayerStats = (player: Player) => {
+    const playerShots = shots.filter(shot => shot.hitPlayer === player.id);
+    const totalShots = playerShots.length;
+    const crossShots = playerShots.filter(shot => shot.isCross).length;
+    const missShots = playerShots.filter(shot => shot.result === 'miss').length;
+    const pointShots = playerShots.filter(shot => shot.result === 'point').length;
+    const totalRearShots = playerShots.filter(shot => shot.area.includes('R')).length;
+    const totalMidShots = playerShots.filter(shot => shot.area.includes('M')).length;
+    const totalFrontShots = playerShots.filter(shot => shot.area.includes('F')).length;
 
     return {
-      totalRearShots,
-      crossRate: totalRearShots > 0 ? ((crossShots.length / totalRearShots) * 100).toFixed(1) : '0.0',
-      missRate: totalRearShots > 0 ? ((errors / totalRearShots) * 100).toFixed(1) : '0.0',
-      pointRate: totalRearShots > 0 ? ((winners / totalRearShots) * 100).toFixed(1) : '0.0',
+      totalShots,
+      crossRate: totalShots > 0 ? (crossShots / totalShots) * 100 : 0,
+      missRate: totalShots > 0 ? (missShots / totalShots) * 100 : 0,
+      pointRate: totalShots > 0 ? (pointShots / totalShots) * 100 : 0,
+      rearRate: totalShots > 0 ? (totalRearShots / totalShots) * 100 : 0,
+      midRate: totalShots > 0 ? (totalMidShots / totalShots) * 100 : 0,
+      frontRate: totalShots > 0 ? (totalFrontShots / totalShots) * 100 : 0,
     };
   };
 
-  // ヒートマップデータの生成
-  const generateHeatmapData = (playerId: string) => {
-    const playerShots = shots.filter(shot => shot.hitPlayer === playerId);
-    const errorShots = playerShots.filter(shot => shot.result === 'error');
-    
-    const areaErrors: { [key: string]: number } = {};
-    const courtAreas = ['LR', 'CR', 'RR', 'LM', 'CM', 'RM', 'LF', 'CF', 'RF'];
+  const getChartData = (stats: ReturnType<typeof calculatePlayerStats>) => ({
+    labels: ['後衛', '中衛', '前衛'],
+    datasets: [
+      {
+        data: [
+          stats.rearRate,
+          stats.midRate,
+          stats.frontRate
+        ],
+        backgroundColor: [
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 206, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)'
+        ],
+        borderColor: [
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  });
 
-    // 各エリアのミス数をカウント
-    courtAreas.forEach(area => {
-      areaErrors[area] = errorShots.filter(shot => shot.hitArea === area).length;
-    });
-
-    // 最大ミス数に基づいて色の強度を計算
-    const maxErrors = Math.max(...Object.values(areaErrors));
-    return courtAreas.map(area => ({
-      area,
-      errors: areaErrors[area],
-      intensity: maxErrors > 0 ? (areaErrors[area] / maxErrors) * 100 : 0
-    }));
+  const chartOptions = {
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          font: {
+            size: 12
+          }
+        }
+      }
+    },
+    cutout: '70%'
   };
 
   return (
-    <div className="space-y-6">
-      {/* 選手選択 */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <h2 className="text-lg font-medium mb-4">選手選択</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          {players.map(player => (
-            <button
-              key={player.id}
-              onClick={() => setSelectedPlayer(player)}
-              className={`p-2 rounded ${
-                selectedPlayer?.id === player.id
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-            >
-              {player.name}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {players.map(player => {
+        const stats = calculatePlayerStats(player);
+        return (
+          <div key={player.id} className="bg-white rounded-lg shadow p-4">
+            <h3 className="text-lg font-medium mb-4">{player.name}</h3>
+            
+            <div className="space-y-4">
+              {/* 円グラフ */}
+              <div className="h-40">
+                <Doughnut data={getChartData(stats)} options={chartOptions} />
+              </div>
 
-      {selectedPlayer && (
-        <>
-          {/* 後衛からのショット分析 */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-medium mb-4">後衛からのショット分析</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {Object.entries(calculatePlayerStats(selectedPlayer.id)).map(([key, value]) => (
-                <div key={key} className="text-center p-4 bg-gray-50 rounded">
-                  <p className="text-sm text-gray-600">
-                    {key === 'totalRearShots' ? '総ショット数' :
-                     key === 'crossRate' ? 'クロス率' :
-                     key === 'missRate' ? 'ミス率' : '得点率'}
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {key === 'totalRearShots' ? value :
-                     `${value}%`}
-                  </p>
+              {/* 統計情報 */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-blue-50 p-3 rounded">
+                  <p className="text-sm text-gray-600">クロス率</p>
+                  <p className="text-xl font-bold">{stats.crossRate.toFixed(1)}%</p>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ヒートマップ */}
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-medium mb-4">ミスヒートマップ</h3>
-            <div className="relative w-full">
-              <div className="aspect-[2/1] bg-green-500 relative">
-                <div className="absolute inset-2 border-2 border-white grid grid-cols-3 grid-rows-3">
-                  {generateHeatmapData(selectedPlayer.id).map(({ area, intensity }) => (
-                    <div
-                      key={area}
-                      className="border border-white relative"
-                      style={{
-                        backgroundColor: `rgba(255, 0, 0, ${intensity / 100})`
-                      }}
-                    >
-                      <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-xs font-bold">
-                        {area}
-                      </span>
-                    </div>
-                  ))}
+                <div className="bg-red-50 p-3 rounded">
+                  <p className="text-sm text-gray-600">ミス率</p>
+                  <p className="text-xl font-bold">{stats.missRate.toFixed(1)}%</p>
+                </div>
+                <div className="bg-green-50 p-3 rounded">
+                  <p className="text-sm text-gray-600">得点率</p>
+                  <p className="text-xl font-bold">{stats.pointRate.toFixed(1)}%</p>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <p className="text-sm text-gray-600">総ショット数</p>
+                  <p className="text-xl font-bold">{stats.totalShots}</p>
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex items-center justify-center">
-              <div className="flex items-center">
-                <span className="text-xs mr-2">少ない</span>
-                <div className="h-4 w-32 bg-gradient-to-r from-red-100 to-red-500"></div>
-                <span className="text-xs ml-2">多い</span>
-              </div>
-            </div>
           </div>
-        </>
-      )}
+        );
+      })}
     </div>
   );
 };
