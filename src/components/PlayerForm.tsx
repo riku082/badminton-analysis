@@ -1,12 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-
-interface Player {
-  id: string;
-  name: string;
-  affiliation: string;
-}
+import { Player } from '@/types/player';
 
 interface PlayerFormProps {
   onPlayerAdded: (player: Player) => void;
@@ -23,6 +18,7 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onPlayerAdded }) => {
         id: Date.now().toString(),
         name,
         affiliation,
+        createdAt: Date.now(),
       });
       setName('');
       setAffiliation('');

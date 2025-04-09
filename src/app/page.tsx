@@ -11,16 +11,11 @@ import AnalysisPanel from '@/components/AnalysisPanel';
 import MatchManagement from '@/components/MatchManagement';
 import { Match } from '@/types/match';
 import { Shot } from '@/types/shot';
+import { Player } from '@/types/player';
 import { db } from '@/utils/db';
 import BackupPanel from '@/components/BackupPanel';
 
 type TabType = 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup';
-
-interface Player {
-  id: string;
-  name: string;
-  affiliation: string;
-}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<TabType>('players');
@@ -177,11 +172,12 @@ export default function Home() {
         );
       case 'analysis':
         return (
-          <AnalysisPanel
-            players={players}
-            matches={matches}
-            shots={shots}
-          />
+          <div className="space-y-4">
+            <AnalysisPanel
+              players={players}
+              shots={shots}
+            />
+          </div>
         );
       case 'management':
         return (
