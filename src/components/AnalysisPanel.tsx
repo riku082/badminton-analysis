@@ -20,9 +20,9 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
     const crossShots = playerShots.filter(shot => shot.isCross).length;
     const missShots = playerShots.filter(shot => shot.result === 'miss').length;
     const pointShots = playerShots.filter(shot => shot.result === 'point').length;
-    const totalRearShots = playerShots.filter(shot => shot.area.includes('R')).length;
-    const totalMidShots = playerShots.filter(shot => shot.area.includes('M')).length;
-    const totalFrontShots = playerShots.filter(shot => shot.area.includes('F')).length;
+    const totalRearShots = playerShots.filter(shot => ['LR', 'CR', 'RR'].includes(shot.hitArea)).length;
+    const totalMidShots = playerShots.filter(shot => ['LM', 'CM', 'RM'].includes(shot.hitArea)).length;
+    const totalFrontShots = playerShots.filter(shot => ['LF', 'CF', 'RF'].includes(shot.hitArea)).length;
 
     return {
       totalShots,
