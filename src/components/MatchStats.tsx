@@ -1,4 +1,3 @@
-import React from 'react';
 import { Shot } from '@/types/shot';
 
 const getMatchShots = (matchId: string): Shot[] => {
@@ -6,6 +5,7 @@ const getMatchShots = (matchId: string): Shot[] => {
   return shots ? JSON.parse(shots).filter((shot: Shot) => shot.matchId === matchId) : [];
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const calculateMatchStats = (matchId: string) => {
   const matchShots = getMatchShots(matchId);
   const totalShots = matchShots.length;
