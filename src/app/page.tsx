@@ -33,9 +33,9 @@ export default function Home() {
           db.getMatches(),
           db.getShots(),
         ]);
-        setPlayers(() => loadedPlayers);
-        setMatches(() => loadedMatches);
-        setShots(() => loadedShots);
+        setPlayers(loadedPlayers);
+        setMatches(loadedMatches);
+        setShots(loadedShots);
       } catch (error) {
         console.error('データの読み込みに失敗しました:', error);
       }
