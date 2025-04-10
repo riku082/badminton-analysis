@@ -22,7 +22,8 @@ const MatchList: React.FC<MatchListProps> = ({
   onMatchDeleted,
   onMatchSelected,
 }) => {
-  const getPlayerName = (id: string) => {
+  const getPlayerName = (id: string | undefined) => {
+    if (!id) return '未設定';
     const player = players.find((p) => p.id === id);
     return player ? `${player.name} (${player.affiliation})` : '不明';
   };
