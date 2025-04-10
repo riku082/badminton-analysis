@@ -1,4 +1,5 @@
-import { Player, Shot } from '../types';
+import { Player } from '../types/player';
+import { Shot } from '../types/shot';
 
 export const calculatePlayerStats = (player: Player, shots: Shot[]) => {
   const playerShots = shots.filter(shot => shot.hitPlayer === player.id);
