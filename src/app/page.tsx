@@ -202,7 +202,7 @@ export default function Home() {
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">バドミントン分析システム</h1>
+            <h1 className="text-2xl font-bold text-gray-900">配球分析「ヨシダシステム」</h1>
             <button
               onClick={handleEndMatch}
               className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
