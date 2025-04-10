@@ -31,17 +31,19 @@ const MatchManagement: React.FC<MatchManagementProps> = ({
   const calculateMatchStats = (matchId: string) => {
     const matchShots = getMatchShots(matchId);
     const totalShots = matchShots.length;
-    const winners = matchShots.filter(shot => shot.result === 'winner').length;
-    const errors = matchShots.filter(shot => shot.result === 'error').length;
-    const rallies = matchShots.filter(shot => shot.result === 'winner' || shot.result === 'error').length;
+    const winners = matchShots.filter(shot => shot.result === 'point').length;
+    const errors = matchShots.filter(shot => shot.result === 'miss').length;
+    const rallies = matchShots.filter(shot => shot.result === 'point' || shot.result === 'miss').length;
+    const avgRallyLength = rallies > 0 ? totalShots / rallies : 0;
 
     return {
       totalShots,
       winners,
       errors,
       rallies,
+      avgRallyLength: avgRallyLength.toFixed(1),
       winnerPercentage: totalShots > 0 ? ((winners / totalShots) * 100).toFixed(1) : '0.0',
-      errorPercentage: totalShots > 0 ? ((errors / totalShots) * 100).toFixed(1) : '0.0',
+      errorPercentage: totalShots > 0 ? ((errors / totalShots) * 100).toFixed(1) : '0.0'
     };
   };
 
@@ -87,7 +89,7 @@ const MatchManagement: React.FC<MatchManagementProps> = ({
             <div className="text-center">
               <p className="text-sm text-gray-600">平均ラリー長</p>
               <p className="text-xl font-bold">
-                {stats.rallies > 0 ? (stats.totalShots / stats.rallies).toFixed(1) : '0.0'}
+                {stats.avgRallyLength}
               </p>
             </div>
             <div className="text-center">
@@ -125,11 +127,11 @@ const MatchManagement: React.FC<MatchManagementProps> = ({
                       {index + 1}. {getPlayerName(shot.hitPlayer)} → {getPlayerName(shot.receivePlayer)}
                     </span>
                     <span className={`text-sm ${
-                      shot.result === 'winner' ? 'text-green-600' :
-                      shot.result === 'error' ? 'text-red-600' : 'text-gray-600'
+                      shot.result === 'point' ? 'text-green-600' :
+                      shot.result === 'miss' ? 'text-red-600' : 'text-gray-600'
                     }`}>
-                      {shot.result === 'winner' ? 'ウィナー' :
-                       shot.result === 'error' ? 'ミス' : '継続'}
+                      {shot.result === 'point' ? '得点' :
+                       shot.result === 'miss' ? 'ミス' : '継続'}
                     </span>
                   </div>
                   <div className="text-xs text-gray-500">

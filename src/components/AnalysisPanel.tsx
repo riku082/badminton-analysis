@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+
 import { Shot, ShotType } from '@/types/shot';
 import { Player } from '@/types/player';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -17,21 +17,20 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
   const calculatePlayerStats = (player: Player) => {
     const playerShots = shots.filter(shot => shot.hitPlayer === player.id);
     const totalShots = playerShots.length;
-    const crossShots = playerShots.filter(shot => shot.isCross).length;
-    const missShots = playerShots.filter(shot => shot.result === 'miss').length;
-    const pointShots = playerShots.filter(shot => shot.result === 'point').length;
-    const totalRearShots = playerShots.filter(shot => ['LR', 'CR', 'RR'].includes(shot.hitArea)).length;
+    const rearShots = playerShots.filter(shot => ['LR', 'CR', 'RR'].includes(shot.hitArea));
+    const totalRearShots = rearShots.length;
+    const winners = rearShots.filter(shot => shot.result === 'point').length;
+    const missShots = rearShots.filter(shot => shot.result === 'miss').length;
     const totalMidShots = playerShots.filter(shot => ['LM', 'CM', 'RM'].includes(shot.hitArea)).length;
     const totalFrontShots = playerShots.filter(shot => ['LF', 'CF', 'RF'].includes(shot.hitArea)).length;
 
     return {
       totalShots,
-      crossRate: totalShots > 0 ? (crossShots / totalShots) * 100 : 0,
-      missRate: totalShots > 0 ? (missShots / totalShots) * 100 : 0,
-      pointRate: totalShots > 0 ? (pointShots / totalShots) * 100 : 0,
       rearRate: totalShots > 0 ? (totalRearShots / totalShots) * 100 : 0,
       midRate: totalShots > 0 ? (totalMidShots / totalShots) * 100 : 0,
       frontRate: totalShots > 0 ? (totalFrontShots / totalShots) * 100 : 0,
+      pointRate: totalRearShots > 0 ? ((winners / totalRearShots) * 100).toFixed(1) : '0.0',
+      missRate: totalRearShots > 0 ? ((missShots / totalRearShots) * 100).toFixed(1) : '0.0'
     };
   };
 
@@ -162,18 +161,14 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
               {/* 統計情報 */}
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-blue-50 p-3 rounded">
-                  <p className="text-sm text-gray-600">クロス率</p>
-                  <p className="text-xl font-bold">{stats.crossRate.toFixed(1)}%</p>
+                  <p className="text-sm text-gray-600">得点率</p>
+                  <p className="text-xl font-bold">{stats.pointRate}%</p>
                 </div>
                 <div className="bg-red-50 p-3 rounded">
                   <p className="text-sm text-gray-600">ミス率</p>
-                  <p className="text-xl font-bold">{stats.missRate.toFixed(1)}%</p>
+                  <p className="text-xl font-bold">{stats.missRate}%</p>
                 </div>
                 <div className="bg-green-50 p-3 rounded">
-                  <p className="text-sm text-gray-600">得点率</p>
-                  <p className="text-xl font-bold">{stats.pointRate.toFixed(1)}%</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded">
                   <p className="text-sm text-gray-600">総ショット数</p>
                   <p className="text-xl font-bold">{stats.totalShots}</p>
                 </div>
