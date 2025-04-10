@@ -1,4 +1,6 @@
-const calculatePlayerStats = (player: Player) => {
+import { Player, Shot } from '../types';
+
+export const calculatePlayerStats = (player: Player, shots: Shot[]) => {
   const playerShots = shots.filter(shot => shot.hitPlayer === player.id);
   const totalShots = playerShots.length;
   const rearShots = playerShots.filter(shot => ['LR', 'CR', 'RR'].includes(shot.hitArea));
