@@ -66,7 +66,6 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
       return acc;
     }, {} as Record<ShotType, number>);
 
-    const totalShots = playerShots.length;
     const shotTypeLabels = {
       'short_serve': 'ショートサーブ',
       'long_serve': 'ロングサーブ',
