@@ -7,13 +7,13 @@ import PlayerList from '@/components/PlayerList';
 import MatchForm from '@/components/MatchForm';
 import MatchList from '@/components/MatchList';
 import BadmintonCourt from '@/components/BadmintonCourt';
-import AnalysisPanel from '@/components/AnalysisPanel';
 import MatchManagement from '@/components/MatchManagement';
 import { Match } from '@/types/match';
 import { Shot } from '@/types/shot';
 import { Player } from '@/types/player';
 import { db } from '@/utils/db';
 import BackupPanel from '@/components/BackupPanel';
+import AnalysisPanel from '@/components/AnalysisPanel';
 
 type TabType = 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup';
 

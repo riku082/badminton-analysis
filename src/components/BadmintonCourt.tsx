@@ -113,6 +113,10 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     }
   };
 
+  const handleReceiveAreaChange = (area: CourtArea) => {
+    setReceiveArea(area);
+  };
+
   const handleSubmit = () => {
     if (hitPlayer && receivePlayer && hitArea && receiveArea && shotType) {
       const newShot = {
@@ -145,7 +149,7 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
         setHitArea(null);
         setReceiveArea(null);
         setShotType('short_serve');     // ショットタイプをショートサーブに設定
-        setIsHitAreaTop(true);          // 打点エリアを上のコートに戻す
+        setIsHitAreaTop(true);          // 打点エリアの位置をリセット
         setIsServing(true);             // サーブ状態に設定
       }
       setShotResult('continue');
@@ -166,6 +170,124 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     const isReceiveRight = rightAreas.includes(receiveArea);
 
     return (isHitLeft && isReceiveRight) || (isHitRight && isReceiveLeft);
+  };
+
+  const handleAreaClick = (area: CourtArea) => {
+    if (!hitPlayer) return;
+
+    const isServe = shots.length === 0;
+    const isHitPlayer = hitPlayer === match.players.player1 || hitPlayer === match.players.player2;
+    const isReceivePlayer = hitPlayer === match.players.opponent1 || hitPlayer === match.players.opponent2;
+
+    if (isServe) {
+      // サーブの場合は、上下のコート両方から選択可能
+      const newShot: Omit<Shot, 'id' | 'timestamp'> = {
+        matchId: match.id,
+        hitPlayer: hitPlayer,
+        receivePlayer: isHitPlayer ? match.players.opponent1 : match.players.player1,
+        hitArea: area,
+        receiveArea: 'CF', // サーブの着地点は中央前
+        shotType: 'short_serve',
+        result: 'continue',
+        isCross: false,
+      };
+      onShotAdded(newShot);
+      // サーブ後は選択したエリアに応じてisHitAreaTopを設定
+      setIsHitAreaTop(area === hitArea);
+    } else if (isHitPlayer) {
+      // 打点の選択
+      const newShot: Omit<Shot, 'id' | 'timestamp'> = {
+        matchId: match.id,
+        hitPlayer: hitPlayer,
+        receivePlayer: receivePlayer,
+        hitArea: area,
+        receiveArea: 'CF', // デフォルトの着地点
+        shotType: 'clear',
+        result: 'continue',
+        isCross: false,
+      };
+      onShotAdded(newShot);
+    } else if (isReceivePlayer) {
+      // 着地点の選択
+      if (shots.length > 0) {
+        const lastShot = shots[shots.length - 1];
+        const newShot: Shot = {
+          ...lastShot,
+          receiveArea: area,
+        };
+        onShotAdded(newShot);
+      }
+    }
+  };
+
+  const getTop = (area: CourtArea): number => {
+    switch (area) {
+      case 'LF':
+      case 'CF':
+      case 'RF':
+        return 0;
+      case 'LM':
+      case 'CM':
+      case 'RM':
+        return 33.33;
+      case 'LR':
+      case 'CR':
+      case 'RR':
+        return 66.66;
+      default:
+        return 0;
+    }
+  };
+
+  const getLeft = (area: CourtArea): number => {
+    switch (area) {
+      case 'LF':
+      case 'LM':
+      case 'LR':
+        return 0;
+      case 'CF':
+      case 'CM':
+      case 'CR':
+        return 33.33;
+      case 'RF':
+      case 'RM':
+      case 'RR':
+        return 66.66;
+      default:
+        return 0;
+    }
+  };
+
+  const renderArea = (area: CourtArea, isUpper: boolean) => {
+    const isSelected = shots.length > 0 && shots[shots.length - 1].hitArea === area;
+    const isReceiveSelected = shots.length > 0 && shots[shots.length - 1].receiveArea === area;
+    const isServe = shots.length === 0;
+    const isHitPlayer = hitPlayer === match.players.player1 || hitPlayer === match.players.player2;
+    const isReceivePlayer = hitPlayer === match.players.opponent1 || hitPlayer === match.players.opponent2;
+
+    // デバッグ情報を追加
+    console.log('Area:', area, 'isUpper:', isUpper, 'isServe:', isServe, 'isHitPlayer:', isHitPlayer, 'isReceivePlayer:', isReceivePlayer);
+
+    // サーブ時は上下どちらでも選択可能
+    const isSelectable = isServe || (isHitPlayer && isUpper) || (isReceivePlayer && !isUpper);
+
+    return (
+      <div
+        key={area}
+        className={`absolute w-1/3 h-1/3 border border-gray-300 flex items-center justify-center cursor-pointer transition-colors ${
+          isSelected ? 'bg-blue-500 text-white' :
+          isReceiveSelected ? 'bg-green-500 text-white' :
+          isSelectable ? 'hover:bg-gray-100' : 'bg-gray-100 cursor-not-allowed'
+        }`}
+        style={{
+          top: `${getTop(area)}%`,
+          left: `${getLeft(area)}%`,
+        }}
+        onClick={() => isSelectable && handleAreaClick(area)}
+      >
+        {area}
+      </div>
+    );
   };
 
   return (
@@ -379,6 +501,20 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
                 <span className="inline-block px-2 py-1 bg-blue-500 text-white rounded mr-2">青: 打点エリア</span>
                 <span className="inline-block px-2 py-1 bg-red-500 text-white rounded">赤: レシーブエリア</span>
               </div>
+
+              {/* 反転ボタン */}
+              <button
+                onClick={() => {
+                  setIsHitAreaTop(!isHitAreaTop);
+                  // 打点エリアとレシーブエリアを入れ替え
+                  const tempArea = hitArea;
+                  setHitArea(receiveArea);
+                  setReceiveArea(tempArea);
+                }}
+                className="w-full mt-2 bg-gray-500 text-white py-1 px-2 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-xs"
+              >
+                打点・レシーブエリアを反転
+              </button>
             </div>
           </div>
 

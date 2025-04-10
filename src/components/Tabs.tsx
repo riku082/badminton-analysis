@@ -2,38 +2,76 @@
 
 import React from 'react';
 
-type TabType = 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup';
-
 interface TabsProps {
-  activeTab: TabType;
-  onTabChange: (tab: TabType) => void;
+  activeTab: 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup';
+  onTabChange: (tab: 'players' | 'matches' | 'shots' | 'analysis' | 'management' | 'backup') => void;
 }
 
 const Tabs: React.FC<TabsProps> = ({ activeTab, onTabChange }) => {
-  const tabs = [
-    { id: 'players', label: 'プレイヤー管理' },
-    { id: 'matches', label: '試合登録' },
-    { id: 'shots', label: '配球登録' },
-    { id: 'analysis', label: '分析' },
-    { id: 'management', label: '試合管理' },
-    { id: 'backup', label: 'バックアップ' },
-  ] as const;
-
   return (
-    <div className="flex flex-wrap gap-2 mb-6">
-      {tabs.map((tab) => (
+    <div className="border-b border-gray-200">
+      <nav className="-mb-px flex space-x-8" aria-label="Tabs">
         <button
-          key={tab.id}
-          onClick={() => onTabChange(tab.id as TabType)}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            activeTab === tab.id
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+          onClick={() => onTabChange('players')}
+          className={`${
+            activeTab === 'players'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
         >
-          {tab.label}
+          選手
         </button>
-      ))}
+        <button
+          onClick={() => onTabChange('matches')}
+          className={`${
+            activeTab === 'matches'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+        >
+          試合
+        </button>
+        <button
+          onClick={() => onTabChange('shots')}
+          className={`${
+            activeTab === 'shots'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+        >
+          配球
+        </button>
+        <button
+          onClick={() => onTabChange('analysis')}
+          className={`${
+            activeTab === 'analysis'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+        >
+          分析
+        </button>
+        <button
+          onClick={() => onTabChange('management')}
+          className={`${
+            activeTab === 'management'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+        >
+          管理
+        </button>
+        <button
+          onClick={() => onTabChange('backup')}
+          className={`${
+            activeTab === 'backup'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+        >
+          バックアップ
+        </button>
+      </nav>
     </div>
   );
 };
