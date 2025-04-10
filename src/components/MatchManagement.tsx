@@ -19,9 +19,10 @@ const MatchManagement: React.FC<MatchManagementProps> = ({
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
 
-  const getPlayerName = (id: string) => {
-    const player = players.find(p => p.id === id);
-    return player ? player.name : '不明';
+  const getPlayerName = (id: string | undefined) => {
+    if (!id) return '未設定';
+    const player = players.find((p) => p.id === id);
+    return player ? `${player.name} (${player.affiliation})` : '不明';
   };
 
   const getMatchShots = (matchId: string) => {
@@ -135,7 +136,7 @@ const MatchManagement: React.FC<MatchManagementProps> = ({
                     </span>
                   </div>
                   <div className="text-xs text-gray-500">
-                    打点: {shot.hitArea} → 着地点: {shot.receiveArea} | ショット: {shot.type}
+                    打点: {shot.hitArea} → 着地点: {shot.receiveArea} | ショット: {shot.shotType}
                   </div>
                 </div>
               ))}
