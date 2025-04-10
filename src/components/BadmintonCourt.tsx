@@ -3,12 +3,7 @@
 import React, { useState } from 'react';
 import { Match } from '@/types/match';
 import { Shot, ShotType, CourtArea, ShotResult } from '@/types/shot';
-
-interface Player {
-  id: string;
-  name: string;
-  affiliation: string;
-}
+import { Player } from '@/types/player';
 
 interface BadmintonCourtProps {
   match: Match;
@@ -128,6 +123,7 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
         receiveArea,
         shotType,
         result: shotResult,
+        isCross: isCrossShot(hitArea, receiveArea)
       };
       
       onShotAdded(newShot);
@@ -159,6 +155,18 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
   const availablePlayers = match.type === 'singles'
     ? [match.players.player1, match.players.opponent1]
     : [match.players.player1, match.players.player2, match.players.opponent1, match.players.opponent2].filter((p): p is string => Boolean(p));
+
+  const isCrossShot = (hitArea: CourtArea, receiveArea: CourtArea): boolean => {
+    const leftAreas = ['LF', 'LM', 'LR'];
+    const rightAreas = ['RF', 'RM', 'RR'];
+    
+    const isHitLeft = leftAreas.includes(hitArea);
+    const isHitRight = rightAreas.includes(hitArea);
+    const isReceiveLeft = leftAreas.includes(receiveArea);
+    const isReceiveRight = rightAreas.includes(receiveArea);
+
+    return (isHitLeft && isReceiveRight) || (isHitRight && isReceiveLeft);
+  };
 
   return (
     <div className="max-w-4xl mx-auto">

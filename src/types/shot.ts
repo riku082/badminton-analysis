@@ -37,6 +37,5 @@ export interface Shot {
   shotType: ShotType;
   result: ShotResult;
   isCross: boolean;
-  area: string;
   timestamp: number;
 } 

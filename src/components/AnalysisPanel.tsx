@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Shot } from '@/types/shot';
+import { Shot, ShotType } from '@/types/shot';
 import { Player } from '@/types/player';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
@@ -59,6 +59,65 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
     ],
   });
 
+  const getShotTypeChartData = (player: Player) => {
+    const playerShots = shots.filter(shot => shot.hitPlayer === player.id);
+    const shotTypeCounts = playerShots.reduce((acc, shot) => {
+      acc[shot.shotType] = (acc[shot.shotType] || 0) + 1;
+      return acc;
+    }, {} as Record<ShotType, number>);
+
+    const totalShots = playerShots.length;
+    const shotTypeLabels = {
+      'short_serve': 'ショートサーブ',
+      'long_serve': 'ロングサーブ',
+      'clear': 'クリアー',
+      'smash': 'スマッシュ',
+      'drop': 'ドロップ',
+      'long_return': 'ロングリターン',
+      'short_return': 'ショートリターン',
+      'drive': 'ドライブ',
+      'lob': 'ロブ',
+      'push': 'プッシュ',
+      'hairpin': 'ヘアピン'
+    };
+
+    return {
+      labels: Object.entries(shotTypeCounts).map(([type]) => shotTypeLabels[type as ShotType]),
+      datasets: [
+        {
+          data: Object.values(shotTypeCounts),
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.8)',
+            'rgba(54, 162, 235, 0.8)',
+            'rgba(255, 206, 86, 0.8)',
+            'rgba(75, 192, 192, 0.8)',
+            'rgba(153, 102, 255, 0.8)',
+            'rgba(255, 159, 64, 0.8)',
+            'rgba(199, 199, 199, 0.8)',
+            'rgba(83, 102, 255, 0.8)',
+            'rgba(40, 102, 255, 0.8)',
+            'rgba(255, 102, 102, 0.8)',
+            'rgba(102, 255, 102, 0.8)'
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(199, 199, 199, 1)',
+            'rgba(83, 102, 255, 1)',
+            'rgba(40, 102, 255, 1)',
+            'rgba(255, 102, 102, 1)',
+            'rgba(102, 255, 102, 1)'
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+  };
+
   const chartOptions = {
     plugins: {
       legend: {
@@ -82,9 +141,20 @@ const AnalysisPanel: React.FC<AnalysisPanelProps> = ({ shots, players }) => {
             <h3 className="text-lg font-medium mb-4">{player.name}</h3>
             
             <div className="space-y-4">
-              {/* 円グラフ */}
-              <div className="h-40">
-                <Doughnut data={getChartData(stats)} options={chartOptions} />
+              {/* コート位置の円グラフ */}
+              <div>
+                <h4 className="text-sm font-medium mb-2">コート位置分布</h4>
+                <div className="h-40">
+                  <Doughnut data={getChartData(stats)} options={chartOptions} />
+                </div>
+              </div>
+
+              {/* ショット種類の円グラフ */}
+              <div>
+                <h4 className="text-sm font-medium mb-2">ショット種類分布</h4>
+                <div className="h-40">
+                  <Doughnut data={getShotTypeChartData(player)} options={chartOptions} />
+                </div>
               </div>
 
               {/* 統計情報 */}
