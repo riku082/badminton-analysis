@@ -1,4 +1,6 @@
-import { Player, Match, Shot } from '@/types';
+import { Player } from '@/types/player';
+import { Match } from '@/types/match';
+import { Shot } from '@/types/shot';
 
 const DB_NAME = 'badmintonAnalysisDB';
 const DB_VERSION = 1;
