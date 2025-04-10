@@ -6,8 +6,8 @@ import { BadmintonProvider } from "@/context/BadmintonContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "バドミントン配球解析",
-  description: "バドミントンの配球を記録・分析するアプリケーション",
+  title: "配球分析「ヨシダシステム」",
+  description: "バドミントンの配球分析システム",
 };
 
 export default function RootLayout({
@@ -17,6 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
+      <head>
+        <title>配球分析「ヨシダシステム」</title>
+        <meta name="description" content="バドミントンの配球分析システム" />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body className={inter.className}>
         <BadmintonProvider>
           {children}
