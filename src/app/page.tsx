@@ -33,9 +33,9 @@ export default function Home() {
           db.getMatches(),
           db.getShots(),
         ]);
-        setPlayers(loadedPlayers);
-        setMatches(loadedMatches);
-        setShots(loadedShots);
+        setPlayers(() => loadedPlayers);
+        setMatches(() => loadedMatches);
+        setShots(() => loadedShots);
       } catch (error) {
         console.error('データの読み込みに失敗しました:', error);
       }
@@ -64,7 +64,7 @@ export default function Home() {
   };
 
   const handlePlayerDeleted = (id: string) => {
-    setPlayers(players.filter((player) => player.id !== id));
+    setPlayers((prev) => prev.filter((player) => player.id !== id));
     // 関連する試合とショットも削除
     const updatedMatches = matches.filter(
       (match) =>
