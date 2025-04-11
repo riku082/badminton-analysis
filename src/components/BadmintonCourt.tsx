@@ -168,6 +168,7 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     return (isHitLeft && isReceiveRight) || (isHitRight && isReceiveLeft);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAreaClick = (area: CourtArea) => {
     if (!hitPlayer) return;
 
@@ -216,6 +217,7 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getTop = (area: CourtArea): number => {
     switch (area) {
       case 'LF':
@@ -235,6 +237,7 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getLeft = (area: CourtArea): number => {
     switch (area) {
       case 'LF':
