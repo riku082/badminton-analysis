@@ -113,10 +113,6 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
     }
   };
 
-  const handleReceiveAreaChange = (area: CourtArea) => {
-    setReceiveArea(area);
-  };
-
   const handleSubmit = () => {
     if (hitPlayer && receivePlayer && hitArea && receiveArea && shotType) {
       const newShot = {
@@ -256,38 +252,6 @@ const BadmintonCourt: React.FC<BadmintonCourtProps> = ({
       default:
         return 0;
     }
-  };
-
-  const renderArea = (area: CourtArea, isUpper: boolean) => {
-    const isSelected = shots.length > 0 && shots[shots.length - 1].hitArea === area;
-    const isReceiveSelected = shots.length > 0 && shots[shots.length - 1].receiveArea === area;
-    const isServe = shots.length === 0;
-    const isHitPlayer = hitPlayer === match.players.player1 || hitPlayer === match.players.player2;
-    const isReceivePlayer = hitPlayer === match.players.opponent1 || hitPlayer === match.players.opponent2;
-
-    // デバッグ情報を追加
-    console.log('Area:', area, 'isUpper:', isUpper, 'isServe:', isServe, 'isHitPlayer:', isHitPlayer, 'isReceivePlayer:', isReceivePlayer);
-
-    // サーブ時は上下どちらでも選択可能
-    const isSelectable = isServe || (isHitPlayer && isUpper) || (isReceivePlayer && !isUpper);
-
-    return (
-      <div
-        key={area}
-        className={`absolute w-1/3 h-1/3 border border-gray-300 flex items-center justify-center cursor-pointer transition-colors ${
-          isSelected ? 'bg-blue-500 text-white' :
-          isReceiveSelected ? 'bg-green-500 text-white' :
-          isSelectable ? 'hover:bg-gray-100' : 'bg-gray-100 cursor-not-allowed'
-        }`}
-        style={{
-          top: `${getTop(area)}%`,
-          left: `${getLeft(area)}%`,
-        }}
-        onClick={() => isSelectable && handleAreaClick(area)}
-      >
-        {area}
-      </div>
-    );
   };
 
   return (
