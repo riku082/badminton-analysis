@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { Player, Shot } from '@/types/player';
+import { Player } from '@/types/player';
+import { Shot, ShotType, ShotResult } from '@/types/shot';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 
