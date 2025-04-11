@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Player } from '@/types/player';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Shot, ShotType, ShotResult } from '@/types/shot';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
